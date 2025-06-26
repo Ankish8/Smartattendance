@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartAttend - AI Attendance Tracking</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+        
+        .logo {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+        
+        .status-bar {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+        
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: rgba(102, 126, 234, 0.05);
+        }
+        
+        .upload-area.dragover {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 0.5rem;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .result-area {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(0,0,0,0.02);
+            border-radius: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .result-item {
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+        
+        .result-item.unmatched {
+            border-left-color: #ff9800;
+            background: rgba(255, 152, 0, 0.1);
+        }
+        
+        .confidence {
+            display: inline-block;
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        
+        .confidence.high {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .confidence.medium {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .confidence.low {
+            background: #f44336;
+            color: white;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .stat {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: white;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🎓 SmartAttend</div>
+            <div class="subtitle">AI-Powered Attendance Tracking System</div>
+            
+            <div class="status-bar">
+                <div class="status-item">
+                    <div class="status-dot" id="backend-status"></div>
+                    <span>Backend API</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot" id="ai-status"></div>
+                    <span>DeepSeek AI</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot" id="db-status"></div>
+                    <span>Database</span>
+                </div>
+                <div class="status-item">
+                    <span id="status-text">Checking system status...</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="card">
+                <h2>📁 Upload Attendance File</h2>
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-icon">📄</div>
+                    <h3>Drag & Drop CSV File Here</h3>
+                    <p>or click to browse files</p>
+                    <p style="font-size: 0.9rem; color: #666; margin-top: 1rem;">
+                        Supports CSV files up to 10MB
+                    </p>
+                </div>
+                
+                <input type="file" id="file-input" accept=".csv" style="display: none;">
+                
+                <div id="file-info" class="hidden">
+                    <h4>📋 File Details:</h4>
+                    <p><strong>Name:</strong> <span id="file-name"></span></p>
+                    <p><strong>Size:</strong> <span id="file-size"></span></p>
+                    <p><strong>Type:</strong> <span id="file-type"></span></p>
+                </div>
+                
+                <div style="text-align: center; margin-top: 1rem;">
+                    <button class="btn" id="process-btn" disabled>
+                        <span class="loading hidden" id="process-loading"></span>
+                        🤖 Process with AI
+                    </button>
+                    <button class="btn btn-secondary" id="test-ai-btn">
+                        🧪 Test AI Connection
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>📊 Processing Results</h2>
+                <div id="results-area">
+                    <p style="text-align: center; color: #666; padding: 2rem;">
+                        Upload a CSV file to see AI matching results here
+                    </p>
+                </div>
+                
+                <div id="progress-container" class="hidden">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <p id="progress-text">Processing...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-number" id="total-processed">0</div>
+                <div class="stat-label">Total Processed</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="matches-found">0</div>
+                <div class="stat-label">Matches Found</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="confidence-score">0%</div>
+                <div class="stat-label">Avg Confidence</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="processing-time">0s</div>
+                <div class="stat-label">Processing Time</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        
+        // DOM elements
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const fileInfo = document.getElementById('file-info');
+        const processBtn = document.getElementById('process-btn');
+        const testAiBtn = document.getElementById('test-ai-btn');
+        const resultsArea = document.getElementById('results-area');
+        const progressContainer = document.getElementById('progress-container');
+        const statusText = document.getElementById('status-text');
+        
+        let currentFile = null;
+        let currentFileContent = null;
+        
+        // Initialize
+        checkSystemStatus();
+        setupEventListeners();
+        
+        function setupEventListeners() {
+            // File upload
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('drop', handleDrop);
+            uploadArea.addEventListener('dragleave', handleDragLeave);
+            
+            fileInput.addEventListener('change', handleFileSelect);
+            processBtn.addEventListener('click', processFile);
+            testAiBtn.addEventListener('click', testAI);
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        }
+        
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+        
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+        
+        function handleFile(file) {
+            if (!file.name.endsWith('.csv')) {
+                alert('Please select a CSV file');
+                return;
+            }
+            
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File size must be less than 10MB');
+                return;
+            }
+            
+            currentFile = file;
+            
+            // Show file info
+            document.getElementById('file-name').textContent = file.name;
+            document.getElementById('file-size').textContent = formatFileSize(file.size);
+            document.getElementById('file-type').textContent = file.type || 'text/csv';
+            fileInfo.classList.remove('hidden');
+            
+            // Read file content
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                currentFileContent = e.target.result;
+                processBtn.disabled = false;
+            };
+            reader.readAsText(file);
+        }
+        
+        async function checkSystemStatus() {
+            try {
+                // Check backend
+                const backendResponse = await fetch(\`\${API_BASE}/health\`);
+                const backendOk = backendResponse.ok;
+                
+                document.getElementById('backend-status').style.background = backendOk ? '#4CAF50' : '#f44336';
+                
+                // Check AI
+                if (backendOk) {
+                    try {
+                        const aiResponse = await fetch(\`\${API_BASE}/api/test-ai\`, { method: 'POST' });
+                        const aiOk = aiResponse.ok;
+                        document.getElementById('ai-status').style.background = aiOk ? '#4CAF50' : '#f44336';
+                    } catch {
+                        document.getElementById('ai-status').style.background = '#f44336';
+                    }
+                }
+                
+                // Database status (assume healthy if backend is healthy)
+                document.getElementById('db-status').style.background = backendOk ? '#4CAF50' : '#f44336';
+                
+                statusText.textContent = backendOk ? 'All systems operational' : 'Backend unavailable';
+                
+            } catch (error) {
+                console.error('Status check failed:', error);
+                statusText.textContent = 'System check failed';
+                document.getElementById('backend-status').style.background = '#f44336';
+                document.getElementById('ai-status').style.background = '#f44336';
+                document.getElementById('db-status').style.background = '#f44336';
+            }
+        }
+        
+        async function testAI() {
+            const originalText = testAiBtn.textContent;
+            testAiBtn.textContent = '🧪 Testing...';
+            testAiBtn.disabled = true;
+            
+            try {
+                const response = await fetch(\`\${API_BASE}/api/test-ai\`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ test: true })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultsArea.innerHTML = \`
+                        <div class="result-item">
+                            <h4>✅ AI Test Successful</h4>
+                            <p><strong>Status:</strong> \${result.message}</p>
+                            <p><strong>Model:</strong> \${result.config?.model || 'deepseek-chat'}</p>
+                            <p><strong>Response:</strong> \${result.ai_response?.substring(0, 200) || 'Connected'}...</p>
+                        </div>
+                    \`;
+                    document.getElementById('ai-status').style.background = '#4CAF50';
+                } else {
+                    throw new Error(result.error);
+                }
+                
+            } catch (error) {
+                resultsArea.innerHTML = \`
+                    <div class="result-item unmatched">
+                        <h4>❌ AI Test Failed</h4>
+                        <p>\${error.message}</p>
+                    </div>
+                \`;
+                document.getElementById('ai-status').style.background = '#f44336';
+            }
+            
+            testAiBtn.textContent = originalText;
+            testAiBtn.disabled = false;
+        }
+        
+        async function processFile() {
+            if (!currentFileContent) {
+                alert('Please select a file first');
+                return;
+            }
+            
+            const startTime = Date.now();
+            
+            // Show progress
+            progressContainer.classList.remove('hidden');
+            processBtn.disabled = true;
+            document.getElementById('process-loading').classList.remove('hidden');
+            
+            // Simulate progress
+            animateProgress();
+            
+            try {
+                const response = await fetch(\`\${API_BASE}/api/process-attendance\`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        csvData: currentFileContent,
+                        options: { confidence_threshold: 0.7 }
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayResults(result.data);
+                    updateStats(result.data, Date.now() - startTime);
+                } else {
+                    throw new Error(result.error);
+                }
+                
+            } catch (error) {
+                resultsArea.innerHTML = \`
+                    <div class="result-item unmatched">
+                        <h4>❌ Processing Failed</h4>
+                        <p>\${error.message}</p>
+                    </div>
+                \`;
+            }
+            
+            progressContainer.classList.add('hidden');
+            processBtn.disabled = false;
+            document.getElementById('process-loading').classList.add('hidden');
+        }
+        
+        function displayResults(data) {
+            const { matches = [], unmatched = [], confidence = 0 } = data;
+            
+            let html = \`<h4>🎯 Processing Results (Confidence: \${(confidence * 100).toFixed(1)}%)</h4>\`;
+            
+            // Show matches
+            if (matches.length > 0) {
+                html += \`<h5 style="margin-top: 1rem; color: #4CAF50;">✅ Matched Records (\${matches.length})</h5>\`;
+                matches.forEach(match => {
+                    const confidenceClass = match.confidence > 0.8 ? 'high' : match.confidence > 0.6 ? 'medium' : 'low';
+                    html += \`
+                        <div class="result-item">
+                            <strong>\${match.originalName}</strong> → <strong>\${match.studentName}</strong>
+                            <span class="confidence \${confidenceClass}">\${(match.confidence * 100).toFixed(0)}%</span>
+                            <br><small>Method: \${match.method || 'AI'}</small>
+                        </div>
+                    \`;
+                });
+            }
+            
+            // Show unmatched
+            if (unmatched.length > 0) {
+                html += \`<h5 style="margin-top: 1rem; color: #ff9800;">⚠️ Unmatched Records (\${unmatched.length})</h5>\`;
+                unmatched.forEach(item => {
+                    html += \`
+                        <div class="result-item unmatched">
+                            <strong>\${item.originalName}</strong>
+                            <br><small>Reason: \${item.reason || 'No match found'}</small>
+                        </div>
+                    \`;
+                });
+            }
+            
+            resultsArea.innerHTML = html;
+        }
+        
+        function updateStats(data, processingTime) {
+            const { matches = [], totalRows = 0, confidence = 0 } = data;
+            
+            document.getElementById('total-processed').textContent = totalRows;
+            document.getElementById('matches-found').textContent = matches.length;
+            document.getElementById('confidence-score').textContent = \`\${(confidence * 100).toFixed(0)}%\`;
+            document.getElementById('processing-time').textContent = \`\${(processingTime / 1000).toFixed(1)}s\`;
+        }
+        
+        function animateProgress() {
+            const progressFill = document.getElementById('progress-fill');
+            const progressText = document.getElementById('progress-text');
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    progressText.textContent = 'Processing complete!';
+                }
+                progressFill.style.width = \`\${progress}%\`;
+                
+                if (progress < 30) {
+                    progressText.textContent = 'Analyzing file structure...';
+                } else if (progress < 60) {
+                    progressText.textContent = 'Running AI matching...';
+                } else if (progress < 90) {
+                    progressText.textContent = 'Calculating confidence scores...';
+                } else {
+                    progressText.textContent = 'Finalizing results...';
+                }
+            }, 200);
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Refresh status every 30 seconds
+        setInterval(checkSystemStatus, 30000);
+    </script>
+</body>
+</html>

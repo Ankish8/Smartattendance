@@ -1,0 +1,21 @@
+# Production Dockerfile for SmartAttend Backend
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Install dependencies
+COPY smartattend-production/package*.json ./
+RUN npm install
+
+# Copy source code
+COPY smartattend-production/ ./
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+
+# Start the application
+CMD ["node", "backend-app.js"]

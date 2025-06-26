@@ -1,0 +1,266 @@
+{
+  "audit_info": {
+    "timestamp": "2025-06-26T01:23:41Z",
+    "auditor": "SmartAttend Security Audit Script",
+    "version": "1.0.0"
+  },
+  "summary": {
+    "total_checks": 33,
+    "passed": 25,
+    "failed": 1,
+    "warnings": 7
+  },
+  "categories": {
+    "Environment Security": [
+      {
+        "check": "Default Secrets",
+        "status": "fail",
+        "details": "Default placeholder secrets found in environment file",
+        "severity": "high",
+        "timestamp": "2025-06-26T01:23:41Z"
+      },
+      {
+        "check": "Weak Passwords",
+        "status": "pass",
+        "details": "No weak passwords detected",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:41Z"
+      },
+      {
+        "check": "File Permissions",
+        "status": "pass",
+        "details": "Environment file has secure permissions (600)",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:41Z"
+      },
+      {
+        "check": "Required Variables",
+        "status": "pass",
+        "details": "All required security variables are present",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:41Z"
+      }
+    ],
+    "Docker Security": [
+      {
+        "check": "No New Privileges",
+        "status": "warn",
+        "details": "no-new-privileges security option not found",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:41Z"
+      },
+      {
+        "check": "User Configuration",
+        "status": "warn",
+        "details": "No explicit user configuration found",
+        "severity": "low",
+        "timestamp": "2025-06-26T01:23:41Z"
+      },
+      {
+        "check": "Resource Limits",
+        "status": "pass",
+        "details": "Resource limits are configured",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:41Z"
+      },
+      {
+        "check": "Health Checks",
+        "status": "pass",
+        "details": "Health checks are configured",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:41Z"
+      },
+      {
+        "check": "Secret Management",
+        "status": "warn",
+        "details": "No Docker secrets configuration found",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      }
+    ],
+    "Network Security": [
+      {
+        "check": "HTTPS Redirect",
+        "status": "pass",
+        "details": "HTTP to HTTPS redirect is configured",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      },
+      {
+        "check": "Security Headers",
+        "status": "pass",
+        "details": "All security headers are configured",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      },
+      {
+        "check": "Rate Limiting",
+        "status": "pass",
+        "details": "Rate limiting is configured",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      },
+      {
+        "check": "SSL/TLS Version",
+        "status": "pass",
+        "details": "Modern TLS protocols configured",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      }
+    ],
+    "Database Security": [
+      {
+        "check": "SSL Connection",
+        "status": "pass",
+        "details": "Database SSL connection required",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      },
+      {
+        "check": "Password Strength",
+        "status": "pass",
+        "details": "Database password meets length requirements",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      },
+      {
+        "check": "Database User",
+        "status": "pass",
+        "details": "Custom database user configured",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      }
+    ],
+    "Application Security": [
+      {
+        "check": "Security Middleware",
+        "status": "pass",
+        "details": "Security middleware configured in ../smartattend-backend/src/middleware/security.ts",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      },
+      {
+        "check": "Input Validation",
+        "status": "warn",
+        "details": "Input validation not clearly configured",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      },
+      {
+        "check": "Security Middleware",
+        "status": "pass",
+        "details": "Security middleware configured in ../smartattend-backend/src/config/env.ts",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      },
+      {
+        "check": "Input Validation",
+        "status": "pass",
+        "details": "Input validation configured",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      },
+      {
+        "check": "JWT Secret Strength",
+        "status": "pass",
+        "details": "JWT secret meets length requirements",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      }
+    ],
+    "File Permissions": [
+      {
+        "check": "File Permissions (.env.production)",
+        "status": "pass",
+        "details": "Secure permissions (600)",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      },
+      {
+        "check": "File Permissions (deploy.sh)",
+        "status": "pass",
+        "details": "Secure permissions (700)",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      },
+      {
+        "check": "Script Executable",
+        "status": "pass",
+        "details": "Deploy script is executable",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      }
+    ],
+    "SSL Certificates": [
+      {
+        "check": "Certificate Files",
+        "status": "pass",
+        "details": "SSL certificate files found",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      },
+      {
+        "check": "Certificate Validity",
+        "status": "pass",
+        "details": "Certificate expires: Jun 26 01:23:24 2026 GMT",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      }
+    ],
+    "Monitoring Security": [
+      {
+        "check": "Monitoring Authentication",
+        "status": "warn",
+        "details": "No authentication found for monitoring endpoints",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      },
+      {
+        "check": "External Monitoring",
+        "status": "pass",
+        "details": "External monitoring configured",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      },
+      {
+        "check": "Log Retention",
+        "status": "warn",
+        "details": "Log retention policies not configured",
+        "severity": "low",
+        "timestamp": "2025-06-26T01:23:42Z"
+      }
+    ],
+    "Backup Security": [
+      {
+        "check": "Backup Configuration",
+        "status": "pass",
+        "details": "Backup system configured",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      }
+    ],
+    "Vulnerability Assessment": [
+      {
+        "check": "Debug Information",
+        "status": "warn",
+        "details": "Debug statements found in frontend code",
+        "severity": "low",
+        "timestamp": "2025-06-26T01:23:42Z"
+      },
+      {
+        "check": "Hardcoded Secrets",
+        "status": "pass",
+        "details": "No hardcoded secrets found",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      },
+      {
+        "check": "Security TODOs",
+        "status": "pass",
+        "details": "No security TODOs found",
+        "severity": "medium",
+        "timestamp": "2025-06-26T01:23:42Z"
+      }
+    ]
+  }
+}

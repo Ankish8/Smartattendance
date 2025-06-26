@@ -1,0 +1,178 @@
+# SmartAttend Prometheus Monitoring Configuration
+# Comprehensive monitoring for all system components
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'smartattend-production'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'
+rule_files:
+  - "rules/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # SmartAttend Backend API
+  - job_name: 'smartattend-backend'
+    static_configs:
+      - targets: ['backend:3000']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+
+  # SmartAttend Frontend
+  - job_name: 'smartattend-frontend'
+    static_configs:
+      - targets: ['frontend:3000']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  # PostgreSQL Database
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['postgres:5432']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  # Redis Cache
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  # Nginx Load Balancer
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx:8080']
+    scrape_interval: 30s
+    metrics_path: /nginx_status
+    scrape_timeout: 10s
+
+  # Node Exporter (if available)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  # Docker containers
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['docker-exporter:9323']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Custom application metrics
+  - job_name: 'smartattend-custom-metrics'
+    static_configs:
+      - targets: ['backend:9091']
+    scrape_interval: 15s
+    metrics_path: /metrics/custom
+    scrape_timeout: 10s
+    honor_labels: true
+
+  # Health checks
+  - job_name: 'health-checks'
+    static_configs:
+      - targets: 
+        - 'backend:3000'
+        - 'frontend:3000'
+        - 'nginx:80'
+    scrape_interval: 10s
+    metrics_path: /health
+    scrape_timeout: 5s
+    honor_labels: true
+
+  # API endpoint monitoring
+  - job_name: 'api-endpoints'
+    static_configs:
+      - targets: ['backend:3000']
+    scrape_interval: 30s
+    metrics_path: /api/metrics
+    scrape_timeout: 10s
+    params:
+      format: ['prometheus']
+
+  # File upload monitoring
+  - job_name: 'file-uploads'
+    static_configs:
+      - targets: ['backend:3000']
+    scrape_interval: 60s
+    metrics_path: /api/metrics/uploads
+    scrape_timeout: 15s
+
+  # AI processing monitoring
+  - job_name: 'ai-processing'
+    static_configs:
+      - targets: ['backend:3000']
+    scrape_interval: 30s
+    metrics_path: /api/metrics/ai
+    scrape_timeout: 15s
+
+  # User session monitoring
+  - job_name: 'user-sessions'
+    static_configs:
+      - targets: ['backend:3000']
+    scrape_interval: 60s
+    metrics_path: /api/metrics/sessions
+    scrape_timeout: 10s
+
+  # Database performance monitoring
+  - job_name: 'database-performance'
+    static_configs:
+      - targets: ['backend:3000']
+    scrape_interval: 60s
+    metrics_path: /api/metrics/database
+    scrape_timeout: 20s
+
+  # External service monitoring (OpenAI API)
+  - job_name: 'external-services'
+    static_configs:
+      - targets: ['backend:3000']
+    scrape_interval: 120s
+    metrics_path: /api/metrics/external
+    scrape_timeout: 15s
+
+# Remote write configuration (for external monitoring services)
+# remote_write:
+#   - url: "https://prometheus-remote-write-endpoint.com/api/v1/write"
+#     headers:
+#       Authorization: "Bearer YOUR_TOKEN_HERE"
+#     queue_config:
+#       capacity: 10000
+#       max_shards: 200
+#       min_shards: 1
+#       max_samples_per_send: 1000
+#       batch_send_deadline: 5s
+#       min_backoff: 30ms
+#       max_backoff: 100ms
+
+# Storage configuration
+storage:
+  tsdb:
+    retention_time: 15d
+    retention_size: 10GB
+    wal_compression: true

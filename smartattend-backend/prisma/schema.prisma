@@ -1,0 +1,255 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum SessionStatus {
+  SCHEDULED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum ProcessingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  username        String?   @unique
+  firstName       String
+  lastName        String
+  password        String
+  role            Role      @default(STUDENT)
+  isActive        Boolean   @default(true)
+  emailVerified   Boolean   @default(false)
+  lastLoginAt     DateTime?
+  profilePicture  String?
+  preferences     Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  refreshTokens   RefreshToken[]
+  auditLogs       AuditLog[]
+  createdSessions Session[]      @relation("SessionCreator")
+  studentProfile  Student?
+  teacherSessions Session[]      @relation("SessionTeacher")
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model Student {
+  id            String  @id @default(cuid())
+  userId        String  @unique
+  studentId     String? @unique
+  phoneNumber   String?
+  address       String?
+  dateOfBirth   DateTime?
+  emergencyContact Json?
+  subjects      String[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attendanceRecords AttendanceRecord[]
+  enrollments   SessionEnrollment[]
+
+  @@map("students")
+}
+
+model Session {
+  id              String        @id @default(cuid())
+  title           String
+  description     String?
+  subject         String
+  location        String?
+  scheduledAt     DateTime
+  duration        Int           // in minutes
+  status          SessionStatus @default(SCHEDULED)
+  maxCapacity     Int?
+  requiresAttendance Boolean    @default(true)
+  metadata        Json?
+  
+  createdById     String
+  teacherId       String?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  createdBy       User          @relation("SessionCreator", fields: [createdById], references: [id])
+  teacher         User?         @relation("SessionTeacher", fields: [teacherId], references: [id])
+  attendanceRecords AttendanceRecord[]
+  enrollments     SessionEnrollment[]
+  uploads         FileUpload[]
+
+  @@map("sessions")
+}
+
+model SessionEnrollment {
+  id        String   @id @default(cuid())
+  sessionId String
+  studentId String
+  enrolledAt DateTime @default(now())
+  isActive  Boolean  @default(true)
+
+  // Relations
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, studentId])
+  @@map("session_enrollments")
+}
+
+model AttendanceRecord {
+  id              String           @id @default(cuid())
+  sessionId       String
+  studentId       String
+  status          AttendanceStatus
+  confidence      Float?           // AI confidence score (0-1)
+  matchedName     String?          // Original name from uploaded file
+  aiMethod        String?          // Method used for matching (AI, pattern, manual)
+  notes           String?
+  markedAt        DateTime         @default(now())
+  verifiedAt      DateTime?
+  verifiedBy      String?
+  
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relations
+  session         Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student         Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, studentId])
+  @@map("attendance_records")
+}
+
+model FileUpload {
+  id              String           @id @default(cuid())
+  sessionId       String?
+  originalName    String
+  fileName        String
+  filePath        String
+  fileSize        Int
+  mimeType        String
+  uploadedBy      String
+  
+  processingStatus ProcessingStatus @default(PENDING)
+  processingResult Json?
+  processingErrors Json?
+  aiAnalysis      Json?
+  
+  processedAt     DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relations
+  session         Session? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  processedRecords ProcessedRecord[]
+
+  @@map("file_uploads")
+}
+
+model ProcessedRecord {
+  id            String     @id @default(cuid())
+  fileUploadId  String
+  originalData  Json       // Raw data from file
+  processedData Json       // Processed/normalized data
+  matchedStudentId String?
+  confidence    Float?
+  matchMethod   String?    // AI, pattern, manual
+  isVerified    Boolean    @default(false)
+  
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // Relations
+  fileUpload    FileUpload @relation(fields: [fileUploadId], references: [id], onDelete: Cascade)
+
+  @@map("processed_records")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  resource  String
+  resourceId String?
+  details   Json?
+  ipAddress String?
+  userAgent String?
+  
+  createdAt DateTime @default(now())
+
+  // Relations
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
+
+model AIFeedback {
+  id              String   @id @default(cuid())
+  originalName    String
+  matchedStudentId String
+  confidence      Float
+  wasCorrect      Boolean
+  correctedStudentId String?
+  feedbackBy      String
+  context         Json?    // Additional context for learning
+  
+  createdAt       DateTime @default(now())
+
+  @@map("ai_feedback")
+}
+
+model SystemSettings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  category  String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
+}

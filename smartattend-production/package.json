@@ -1,0 +1,15 @@
+{
+  "name": "smartattend-demo",
+  "version": "1.0.0",
+  "description": "SmartAttend AI Demo Application",
+  "main": "simple-ai-demo.js",
+  "scripts": {
+    "start": "node simple-ai-demo.js",
+    "dev": "node simple-ai-demo.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "openai": "^4.20.1"
+  }
+}
